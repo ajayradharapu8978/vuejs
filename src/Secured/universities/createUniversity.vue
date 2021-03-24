@@ -23,7 +23,7 @@
         </div>
         <div class="form-group">
             <label>Address</label>
-            <textarea name="address" class="form-control" id="" cols="30" rows="10" v-model="address"></textarea>
+            <textarea name="address" class="form-control" id="" v-model="address"></textarea>
         </div><br>
         <div class="btn-toobar mb-2 mb-md-0">
             <button type="reset" class="btn btn-outline-secondary">Clear</button>&nbsp;
@@ -33,10 +33,10 @@
     </form>
     </div>
 </template>
-<script>
-import { ref } from 'vue'
+<script lang="ts">
+import { onMounted, ref } from 'vue'
 import axios from 'axios';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 export default {
     name: 'createUniversity',
     setup(){
@@ -47,8 +47,32 @@ export default {
         const Website = ref('');
         const address = ref('');
         const router = useRouter();
+        const { params } = useRoute()
+
+       onMounted(async () => {
+            if (params.id) {
+            const universityCall = await axios.get(`university/${params.id}`)
+            const university = universityCall.data;
+            universityName.value = university.universityName
+            email.value = university.email
+            phone.value = university.phone
+            country.value = university.country
+            Website.value = university.Website
+            address.value = university.address
+            }
+        });
 
         const onSubmit = async () => {
+            if (params.id) {
+            await axios.patch(`university/${params.id}`,{
+                universityName: universityName.value,
+                email: email.value,
+                phone: phone.value,
+                country: country.value,
+                Website: Website.value,
+                address: address.value
+            })
+            } else {
             await axios.post('university',{
                 universityName: universityName.value,
                 email: email.value,
@@ -57,6 +81,7 @@ export default {
                 Website: Website.value,
                 address: address.value
             })
+            }
             await router.push('/universities');
         }
 
